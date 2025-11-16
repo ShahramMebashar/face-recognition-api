@@ -45,6 +45,13 @@ func Load() (*Config, error) {
 
 	// Bind environment variables
 	viper.AutomaticEnv()
+	viper.BindEnv("server.port", "SERVER_PORT")
+	viper.BindEnv("server.host", "SERVER_HOST")
+	viper.BindEnv("faceapi.url", "FACE_API_URL")
+	viper.BindEnv("faceapi.timeout", "FACE_API_TIMEOUT")
+	viper.BindEnv("upload.maxuploadsize", "MAX_UPLOAD_SIZE")
+	viper.BindEnv("upload.maxmemory", "MAX_MEMORY")
+	viper.BindEnv("attendance.dbpath", "ATTENDANCE_DB_PATH")
 
 	// Set defaults
 	viper.SetDefault("server.port", "8080")
