@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  face-recognition-api:
+    build: .
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./known_faces:/app/known_faces
+      - ./face_encodings.pkl:/app/face_encodings.pkl
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1

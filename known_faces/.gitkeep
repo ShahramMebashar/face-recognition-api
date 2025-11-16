@@ -1,0 +1,15 @@
+# This directory contains known face images for recognition
+#
+# Add images of people you want to recognize here.
+# File naming format: person_name.jpg
+#
+# Example:
+#   john_doe.jpg
+#   jane_smith.png
+#   bob_johnson.jpg
+#
+# Guidelines:
+# - Use clear, front-facing photos
+# - Each image should contain only ONE face
+# - Supported formats: JPG, JPEG, PNG, BMP
+# - The filename (without extension) will be used as the person's name
