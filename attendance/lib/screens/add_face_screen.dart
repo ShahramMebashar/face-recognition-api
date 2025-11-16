@@ -83,7 +83,33 @@ class _AddFaceScreenState extends State<AddFaceScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showError(e.toString());
+
+      // Extract user-friendly error message
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+
+      // Show specific error messages
+      if (errorMessage.contains('No face detected')) {
+        _showErrorDialog(
+          'No Face Detected',
+          'Please ensure your photos clearly show a face. Tips:\n'
+              '• Take photos in good lighting\n'
+              '• Face should be clearly visible\n'
+              '• Avoid blurry or dark images\n'
+              '• Face should be looking at camera',
+        );
+      } else if (errorMessage.contains('Connection refused') ||
+          errorMessage.contains('Failed host lookup')) {
+        _showErrorDialog(
+          'Connection Error',
+          'Unable to reach the server. Please check your internet connection and try again.',
+        );
+      } else {
+        _showError(errorMessage);
+      }
+
       setState(() => _isUploading = false);
     }
   }
@@ -93,6 +119,7 @@ class _AddFaceScreenState extends State<AddFaceScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: AppTheme.grey800,
+        duration: const Duration(seconds: 4),
       ),
     );
   }
@@ -102,6 +129,22 @@ class _AddFaceScreenState extends State<AddFaceScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: AppTheme.black,
+      ),
+    );
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }

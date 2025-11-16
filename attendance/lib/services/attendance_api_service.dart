@@ -101,13 +101,34 @@ class AttendanceApiService {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         return data['success'] == true;
       }
-      throw Exception('Failed to add face: ${response.statusCode}');
+
+      // Parse error response
+      try {
+        final errorData = json.decode(response.body);
+        final errorMessage =
+            errorData['message'] ?? errorData['error'] ?? 'Unknown error';
+
+        // Check for detailed errors array (like face detection failures)
+        if (errorData['errors'] != null && errorData['errors'] is List) {
+          final errors = errorData['errors'] as List;
+          if (errors.isNotEmpty) {
+            final firstError = errors[0];
+            final specificError = firstError['error'] ?? errorMessage;
+            throw Exception(specificError);
+          }
+        }
+
+        throw Exception(errorMessage);
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to add face (${response.statusCode})');
+      }
     } catch (e) {
-      throw Exception('Error adding face: $e');
+      rethrow;
     }
   }
 
