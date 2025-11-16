@@ -8,13 +8,13 @@ WORKDIR /build
 # Install build dependencies (gcc for CGO and SQLite)
 RUN apk add --no-cache git gcc musl-dev sqlite-dev
 
-# Copy go mod files
-COPY go.mod ./
-COPY go.sum* ./
+# Copy go mod files from attendance-api directory
+COPY attendance-api/go.mod ./
+COPY attendance-api/go.sum* ./
 RUN go mod download
 
-# Copy source code
-COPY . .
+# Copy source code from attendance-api directory
+COPY attendance-api/ .
 
 # Build the application
 RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o attendance-api ./cmd/server
