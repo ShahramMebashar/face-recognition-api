@@ -27,7 +27,10 @@ func NewFaceRecognitionClient(baseURL string, timeout time.Duration) *FaceRecogn
 }
 
 func (c *FaceRecognitionClient) GetFaces(ctx context.Context) ([]domain.Face, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/faces", nil)
+	url := c.baseURL + "/faces"
+	fmt.Printf("DEBUG: Calling face API at: %s\n", url)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}

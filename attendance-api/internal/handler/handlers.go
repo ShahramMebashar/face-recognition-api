@@ -33,6 +33,7 @@ func (h *Handler) ListFaces(w http.ResponseWriter, r *http.Request) {
 
 	faces, err := h.faceClient.GetFaces(r.Context())
 	if err != nil {
+		fmt.Printf("ERROR: Failed to get faces: %v\n", err)
 		h.jsonError(w, "Failed to get faces", http.StatusInternalServerError)
 		return
 	}
