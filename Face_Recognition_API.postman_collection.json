@@ -1,0 +1,144 @@
+{
+  "info": {
+    "name": "Face Recognition API",
+    "description": "Complete API collection for Face Recognition System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "face-recognition-api"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check API server status and see how many known faces are loaded"
+      },
+      "response": []
+    },
+    {
+      "name": "List Known Faces",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/faces",
+          "host": ["{{baseUrl}}"],
+          "path": ["faces"]
+        },
+        "description": "Get list of all known people in the system with image counts"
+      },
+      "response": []
+    },
+    {
+      "name": "Recognize Face",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "image",
+              "type": "file",
+              "src": "/path/to/image.jpg",
+              "description": "Image file to recognize faces in"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/recognize",
+          "host": ["{{baseUrl}}"],
+          "path": ["recognize"]
+        },
+        "description": "Upload an image and get face recognition results with names, confidence scores, and locations"
+      },
+      "response": []
+    },
+    {
+      "name": "Add Single Face",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "name",
+              "value": "john_doe",
+              "type": "text",
+              "description": "Person's name (will be sanitized)"
+            },
+            {
+              "key": "images",
+              "type": "file",
+              "src": "/path/to/photo.jpg",
+              "description": "Single image of the person"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/faces/add",
+          "host": ["{{baseUrl}}"],
+          "path": ["faces", "add"]
+        },
+        "description": "Add a new person with a single image"
+      },
+      "response": []
+    },
+    {
+      "name": "Add Multiple Faces (Same Person)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "name",
+              "value": "jane_smith",
+              "type": "text",
+              "description": "Person's name"
+            },
+            {
+              "key": "images",
+              "type": "file",
+              "src": "/path/to/photo1.jpg",
+              "description": "First image"
+            },
+            {
+              "key": "images",
+              "type": "file",
+              "src": "/path/to/photo2.jpg",
+              "description": "Second image"
+            },
+            {
+              "key": "images",
+              "type": "file",
+              "src": "/path/to/photo3.jpg",
+              "description": "Third image"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/faces/add",
+          "host": ["{{baseUrl}}"],
+          "path": ["faces", "add"]
+        },
+        "description": "Add a new person with multiple images for better accuracy"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5001",
+      "type": "string"
+    }
+  ]
+}

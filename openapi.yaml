@@ -1,0 +1,214 @@
+openapi: 3.0.3
+info:
+  title: Face Recognition API
+  description: Simple and accurate face recognition API for production use
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:5001
+    description: Local development server
+  - url: http://your-vps-ip:5001
+    description: Production VPS server
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Check API server status and loaded faces count
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: Face Recognition API
+                  known_faces:
+                    type: integer
+                    example: 3
+                  total_encodings:
+                    type: integer
+                    example: 8
+
+  /faces:
+    get:
+      summary: List Known Faces
+      description: Get list of all known people with image counts
+      responses:
+        '200':
+          description: List of known people
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  total_people:
+                    type: integer
+                    example: 3
+                  total_images:
+                    type: integer
+                    example: 8
+                  people:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: john_doe
+                        images:
+                          type: integer
+                          example: 3
+
+  /recognize:
+    post:
+      summary: Recognize Faces
+      description: Upload an image to recognize faces
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file (JPG, PNG, JPEG, BMP)
+              required:
+                - image
+      responses:
+        '200':
+          description: Face recognition results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  faces_detected:
+                    type: integer
+                    example: 2
+                  faces:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: john_doe
+                        confidence:
+                          type: number
+                          format: float
+                          example: 94.52
+                        location:
+                          type: object
+                          properties:
+                            top:
+                              type: integer
+                              example: 120
+                            right:
+                              type: integer
+                              example: 350
+                            bottom:
+                              type: integer
+                              example: 280
+                            left:
+                              type: integer
+                              example: 190
+        '400':
+          description: Bad request (no image or invalid format)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /faces/add:
+    post:
+      summary: Add New Face(s)
+      description: Add a new person with one or more images
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: john_doe
+                  description: Person's name (spaces will be converted to underscores)
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: One or more image files
+              required:
+                - name
+                - images
+      responses:
+        '201':
+          description: Successfully added face(s)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Successfully added 3 image(s) for john_doe
+                  name:
+                    type: string
+                    example: john_doe
+                  images_added:
+                    type: integer
+                    example: 3
+                  files:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        filename:
+                          type: string
+                          example: john_doe_1.jpg
+                        path:
+                          type: string
+                          example: known_faces/john_doe_1.jpg
+        '400':
+          description: Bad request (no name, no images, or invalid images)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: No image file provided
+        message:
+          type: string
+          example: Please upload an image file with key 'image'
