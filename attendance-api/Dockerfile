@@ -29,11 +29,17 @@ RUN apk --no-cache add ca-certificates sqlite-libs
 # Copy binary from builder
 COPY --from=builder /build/attendance-api .
 
-# Copy .env.example as default
-COPY .env.example .env
-
 # Create data directory
 RUN mkdir -p /app/data
+
+# Environment variables (can be overridden at runtime)
+ENV SERVER_PORT=8080 \
+    SERVER_HOST=0.0.0.0 \
+    FACE_API_URL=http://localhost:5001 \
+    FACE_API_TIMEOUT=30s \
+    MAX_UPLOAD_SIZE=5242880 \
+    MAX_MEMORY=10485760 \
+    ATTENDANCE_DB_PATH=/app/data/attendance.db
 
 # Expose port
 EXPOSE 8080

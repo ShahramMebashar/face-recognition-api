@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  attendance-api:
+    build: .
+    container_name: attendance-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - SERVER_HOST=0.0.0.0
+      - FACE_API_URL=http://face-recognition-api:5001
+      - FACE_API_TIMEOUT=30s
+      - MAX_UPLOAD_SIZE=5242880
+      - MAX_MEMORY=10485760
+      - ATTENDANCE_DB_PATH=/app/data/attendance.db
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - face-recognition-network
+    depends_on:
+      - face-recognition-api
+
+  face-recognition-api:
+    build: 
+      context: ../
+      dockerfile: Dockerfile
+    container_name: face-recognition-api
+    ports:
+      - "5001:5001"
+    volumes:
+      - ../known_faces:/app/known_faces
+      - ../face_encodings.pkl:/app/face_encodings.pkl
+    restart: unless-stopped
+    networks:
+      - face-recognition-network
+
+networks:
+  face-recognition-network:
+    driver: bridge

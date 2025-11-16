@@ -74,6 +74,7 @@ Build and run:
 docker build -t attendance-api .
 docker run -p 8080:8080 \
   -e FACE_API_URL=http://host.docker.internal:5001 \
+  -e ATTENDANCE_DB_PATH=/app/data/attendance.db \
   -v $(pwd)/data:/app/data \
   attendance-api
 ```
@@ -82,6 +83,15 @@ Or use docker-compose (with face recognition API):
 ```bash
 docker-compose up -d
 ```
+
+**Environment Variables (all optional, defaults provided):**
+- `SERVER_PORT=8080`
+- `SERVER_HOST=0.0.0.0`
+- `FACE_API_URL=http://localhost:5001`
+- `FACE_API_TIMEOUT=30s`
+- `MAX_UPLOAD_SIZE=5242880`
+- `MAX_MEMORY=10485760`
+- `ATTENDANCE_DB_PATH=/app/data/attendance.db`
 
 ## API Endpoints
 
@@ -368,6 +378,7 @@ docker run -d \
   --name attendance-api \
   -p 8080:8080 \
   -e FACE_API_URL=http://face-api:5001 \
+  -e ATTENDANCE_DB_PATH=/app/data/attendance.db \
   -v $(pwd)/data:/app/data \
   --restart unless-stopped \
   attendance-api
