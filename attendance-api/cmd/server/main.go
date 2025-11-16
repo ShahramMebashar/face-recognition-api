@@ -43,8 +43,8 @@ func main() {
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
 		Handler:      loggingMiddleware(mux),
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  25 * time.Second,
+		WriteTimeout: 25 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 

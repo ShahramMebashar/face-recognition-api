@@ -51,34 +51,45 @@ func (h *Handler) UploadFaces(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Printf("DEBUG: Starting face upload\n")
+
 	if err := r.ParseMultipartForm(h.config.Upload.MaxMemory); err != nil {
+		fmt.Printf("ERROR: Failed to parse multipart form: %v\n", err)
 		h.jsonError(w, "Failed to parse form", http.StatusBadRequest)
 		return
 	}
 
 	name := r.FormValue("name")
 	if name == "" {
+		fmt.Printf("ERROR: Name is missing\n")
 		h.jsonError(w, "Name is required", http.StatusBadRequest)
 		return
 	}
 
+	fmt.Printf("DEBUG: Name=%s\n", name)
+
 	files := r.MultipartForm.File["images"]
 	if len(files) == 0 {
+		fmt.Printf("ERROR: No images in request\n")
 		h.jsonError(w, "At least one image is required", http.StatusBadRequest)
 		return
 	}
+
+	fmt.Printf("DEBUG: Received %d images\n", len(files))
 
 	var images [][]byte
 	var filenames []string
 
 	for _, fileHeader := range files {
 		if fileHeader.Size > h.config.Upload.MaxUploadSize {
+			fmt.Printf("ERROR: File %s too large: %d bytes\n", fileHeader.Filename, fileHeader.Size)
 			h.jsonError(w, fmt.Sprintf("File %s exceeds maximum size of 5MB", fileHeader.Filename), http.StatusBadRequest)
 			return
 		}
 
 		file, err := fileHeader.Open()
 		if err != nil {
+			fmt.Printf("ERROR: Failed to open file %s: %v\n", fileHeader.Filename, err)
 			h.jsonError(w, "Failed to open file", http.StatusInternalServerError)
 			return
 		}
@@ -86,6 +97,7 @@ func (h *Handler) UploadFaces(w http.ResponseWriter, r *http.Request) {
 
 		data, err := io.ReadAll(file)
 		if err != nil {
+			fmt.Printf("ERROR: Failed to read file %s: %v\n", fileHeader.Filename, err)
 			h.jsonError(w, "Failed to read file", http.StatusInternalServerError)
 			return
 		}
@@ -94,10 +106,15 @@ func (h *Handler) UploadFaces(w http.ResponseWriter, r *http.Request) {
 		filenames = append(filenames, fileHeader.Filename)
 	}
 
+	fmt.Printf("DEBUG: Calling face API to add face...\n")
+
 	if err := h.faceClient.AddFace(r.Context(), name, images, filenames); err != nil {
+		fmt.Printf("ERROR: Failed to add face: %v\n", err)
 		h.jsonError(w, fmt.Sprintf("Failed to add face: %v", err), http.StatusInternalServerError)
 		return
 	}
+
+	fmt.Printf("DEBUG: Successfully added face for %s\n", name)
 
 	h.jsonResponse(w, map[string]interface{}{
 		"success":      true,
