@@ -337,6 +337,36 @@ def add_face():
     return jsonify(response), 201
 
 
+@app.route('/faces/reload', methods=['POST'])
+def reload_faces():
+    """
+    Force reload known faces from disk.
+    Useful after adding faces to sync all workers.
+    """
+    try:
+        # Delete cache to force reload from images
+        cache_file = "face_encodings.pkl"
+        if os.path.exists(cache_file):
+            os.remove(cache_file)
+        
+        # Reload faces
+        recognizer.load_known_faces(force_reload=True)
+        
+        return jsonify({
+            "success": True,
+            "message": "Faces reloaded successfully",
+            "total_faces": len(set(recognizer.known_face_names)),
+            "total_encodings": len(recognizer.known_face_encodings)
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": "Failed to reload faces",
+            "message": str(e)
+        }), 500
+
+
 @app.errorhandler(413)
 def request_entity_too_large(error):
     """Handle file too large error."""

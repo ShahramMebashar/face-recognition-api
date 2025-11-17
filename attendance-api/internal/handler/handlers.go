@@ -116,6 +116,12 @@ func (h *Handler) UploadFaces(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("DEBUG: Successfully added face for %s\n", name)
 
+	// Trigger reload on face recognition API to sync all workers
+	if err := h.faceClient.ReloadFaces(r.Context()); err != nil {
+		fmt.Printf("WARNING: Failed to reload faces: %v\n", err)
+		// Don't fail the request, faces will be reloaded eventually
+	}
+
 	h.jsonResponse(w, map[string]interface{}{
 		"success":      true,
 		"message":      fmt.Sprintf("Successfully added %d image(s) for %s", len(images), name),
