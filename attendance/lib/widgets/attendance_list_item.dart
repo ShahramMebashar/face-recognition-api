@@ -86,16 +86,38 @@ class AttendanceListItem extends StatelessWidget {
               vertical: AppTheme.spacing4,
             ),
             decoration: BoxDecoration(
-              color: record.isAuthorized ? AppTheme.black : AppTheme.grey300,
+              color: record.isAuthorized
+                  ? Colors.green.shade50
+                  : Colors.red.shade50,
               borderRadius: BorderRadius.circular(AppTheme.radius8),
-            ),
-            child: Text(
-              '${(record.confidence * 100).toStringAsFixed(0)}%',
-              style: TextStyle(
-                color: record.isAuthorized ? AppTheme.white : AppTheme.grey800,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+              border: Border.all(
+                color: record.isAuthorized
+                    ? Colors.green.shade200
+                    : Colors.red.shade200,
               ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  record.isAuthorized ? Icons.check_circle : Icons.cancel,
+                  size: 14,
+                  color: record.isAuthorized
+                      ? Colors.green.shade700
+                      : Colors.red.shade700,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  record.isAuthorized ? 'Present' : 'Unknown',
+                  style: TextStyle(
+                    color: record.isAuthorized
+                        ? Colors.green.shade900
+                        : Colors.red.shade900,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

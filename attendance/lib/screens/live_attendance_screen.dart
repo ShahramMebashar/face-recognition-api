@@ -321,12 +321,15 @@ class _LiveAttendanceItemState extends State<_LiveAttendanceItem>
           margin: const EdgeInsets.only(bottom: AppTheme.spacing12),
           padding: const EdgeInsets.all(AppTheme.spacing20),
           decoration: BoxDecoration(
-            color: widget.record.isAuthorized ? AppTheme.black : AppTheme.white,
+            color: widget.record.isAuthorized
+                ? Colors.green.shade50
+                : Colors.red.shade50,
             borderRadius: BorderRadius.circular(AppTheme.radius12),
             border: Border.all(
               color: widget.record.isAuthorized
-                  ? AppTheme.black
-                  : AppTheme.grey300,
+                  ? Colors.green.shade200
+                  : Colors.red.shade200,
+              width: 2,
             ),
           ),
           child: Row(
@@ -337,17 +340,19 @@ class _LiveAttendanceItemState extends State<_LiveAttendanceItem>
                 height: 56,
                 decoration: BoxDecoration(
                   color: widget.record.isAuthorized
-                      ? AppTheme.white
-                      : AppTheme.grey400,
+                      ? Colors.green.shade700
+                      : Colors.red.shade700,
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 3,
+                  ),
                 ),
                 child: Center(
                   child: Text(
                     widget.record.name[0].toUpperCase(),
-                    style: TextStyle(
-                      color: widget.record.isAuthorized
-                          ? AppTheme.black
-                          : AppTheme.white,
+                    style: const TextStyle(
+                      color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
                     ),
@@ -362,13 +367,14 @@ class _LiveAttendanceItemState extends State<_LiveAttendanceItem>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.record.name,
+                      widget.record.name.toUpperCase(),
                       style: TextStyle(
                         color: widget.record.isAuthorized
-                            ? AppTheme.white
-                            : AppTheme.black,
+                            ? Colors.green.shade900
+                            : Colors.red.shade900,
                         fontSize: 18,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
                       ),
                     ),
                     const SizedBox(height: AppTheme.spacing4),
@@ -376,39 +382,58 @@ class _LiveAttendanceItemState extends State<_LiveAttendanceItem>
                       timeFormat.format(widget.record.timestamp),
                       style: TextStyle(
                         color: widget.record.isAuthorized
-                            ? AppTheme.grey200
-                            : AppTheme.grey600,
+                            ? Colors.green.shade700
+                            : Colors.red.shade700,
                         fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              // Status icon & confidence
-              Column(
-                children: [
-                  Icon(
-                    widget.record.isAuthorized
-                        ? Icons.check_circle
-                        : Icons.cancel,
+              // Status badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: widget.record.isAuthorized
+                      ? Colors.green.shade100
+                      : Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(AppTheme.radius8),
+                  border: Border.all(
                     color: widget.record.isAuthorized
-                        ? AppTheme.white
-                        : AppTheme.grey500,
-                    size: 32,
+                        ? Colors.green.shade300
+                        : Colors.red.shade300,
                   ),
-                  const SizedBox(height: AppTheme.spacing4),
-                  Text(
-                    '${(widget.record.confidence * 100).toStringAsFixed(0)}%',
-                    style: TextStyle(
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      widget.record.isAuthorized
+                          ? Icons.check_circle
+                          : Icons.cancel,
                       color: widget.record.isAuthorized
-                          ? AppTheme.grey200
-                          : AppTheme.grey600,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                          ? Colors.green.shade700
+                          : Colors.red.shade700,
+                      size: 28,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.record.isAuthorized ? 'PRESENT' : 'UNKNOWN',
+                      style: TextStyle(
+                        color: widget.record.isAuthorized
+                            ? Colors.green.shade900
+                            : Colors.red.shade900,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
