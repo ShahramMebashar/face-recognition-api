@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/attendance_record.dart';
 import '../models/attendance_stats.dart';
@@ -27,11 +28,78 @@ class _HomeScreenState extends State<HomeScreen> {
   List<AttendanceRecord> _recentRecords = [];
   bool _isLoading = true;
   String? _error;
+  StreamSubscription<AttendanceRecord>? _sseSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _connectToSSE();
+  }
+
+  @override
+  void dispose() {
+    _sseSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _connectToSSE() {
+    print('🏠 Home: Connecting to SSE stream...');
+    try {
+      final stream = widget.apiService.connectSSE();
+      _sseSubscription = stream.listen(
+        (record) {
+          print(
+              '🏠 Home: Received SSE event - Name: ${record.name}, Status: ${record.status}');
+          // Add new record to the top of the list
+          setState(() {
+            _recentRecords.insert(0, record);
+            if (_recentRecords.length > 10) {
+              _recentRecords.removeLast();
+            }
+          });
+          print(
+              '🏠 Home: Updated recent records list (${_recentRecords.length} items)');
+          // Refresh stats when new record arrives
+          _refreshStats();
+        },
+        onError: (error) {
+          print('❌ Home: SSE error: $error');
+          // Silently reconnect on error
+          Future.delayed(const Duration(seconds: 5), () {
+            print('🔄 Home: Reconnecting after error...');
+            _connectToSSE();
+          });
+        },
+        onDone: () {
+          print('⚠️ Home: SSE connection closed');
+          // Reconnect if connection closes
+          Future.delayed(const Duration(seconds: 5), () {
+            print('🔄 Home: Reconnecting after done...');
+            _connectToSSE();
+          });
+        },
+      );
+      print('✅ Home: SSE subscription created');
+    } catch (e) {
+      print('❌ Home: Failed to connect to SSE: $e');
+      // Retry connection after delay
+      Future.delayed(const Duration(seconds: 5), () {
+        print('🔄 Home: Retrying connection...');
+        _connectToSSE();
+      });
+    }
+  }
+
+  Future<void> _refreshStats() async {
+    try {
+      final stats = await widget.apiService.getStats();
+      setState(() {
+        _stats = stats;
+      });
+    } catch (e) {
+      // Ignore stats refresh errors
+    }
   }
 
   Future<void> _loadData() async {

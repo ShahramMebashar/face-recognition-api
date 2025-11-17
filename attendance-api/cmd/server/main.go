@@ -42,10 +42,10 @@ func main() {
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
-		Handler:      loggingMiddleware(mux),
+		Handler:      loggingMiddleware(corsMiddleware(mux)),
 		ReadTimeout:  25 * time.Second,
-		WriteTimeout: 25 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		WriteTimeout: 0, // Disable write timeout for SSE streaming
+		IdleTimeout:  120 * time.Second,
 	}
 
 	go func() {
@@ -75,6 +75,21 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, `{"status":"ok","service":"Attendance API"}`)
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

@@ -36,6 +36,7 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
   }
 
   void _connectToSSE() {
+    print('📺 Live: Connecting to SSE stream...');
     setState(() {
       _isConnected = true;
       _error = null;
@@ -45,6 +46,8 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
       final stream = widget.apiService.connectSSE();
       _sseSubscription = stream.listen(
         (record) {
+          print(
+              '📺 Live: Received SSE event - Name: ${record.name}, Status: ${record.status}');
           setState(() {
             _liveRecords.insert(0, record);
             // Keep only last 50 records
@@ -52,20 +55,25 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
               _liveRecords.removeLast();
             }
           });
+          print('📺 Live: Updated records list (${_liveRecords.length} items)');
         },
         onError: (error) {
+          print('❌ Live: SSE error: $error');
           setState(() {
             _error = error.toString();
             _isConnected = false;
           });
         },
         onDone: () {
+          print('⚠️ Live: SSE connection closed');
           setState(() {
             _isConnected = false;
           });
         },
       );
+      print('✅ Live: SSE subscription created');
     } catch (e) {
+      print('❌ Live: Failed to connect to SSE: $e');
       setState(() {
         _error = e.toString();
         _isConnected = false;
@@ -178,29 +186,72 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              _isConnected ? Icons.visibility_outlined : Icons.signal_wifi_off,
-              size: 64,
-              color: AppTheme.grey300,
+            Container(
+              padding: const EdgeInsets.all(AppTheme.spacing24),
+              decoration: BoxDecoration(
+                color:
+                    _isConnected ? Colors.green.shade50 : Colors.orange.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _isConnected
+                    ? Icons.visibility_outlined
+                    : Icons.signal_wifi_off,
+                size: 64,
+                color: _isConnected
+                    ? Colors.green.shade700
+                    : Colors.orange.shade700,
+              ),
             ),
-            const SizedBox(height: AppTheme.spacing24),
+            const SizedBox(height: AppTheme.spacing32),
             Text(
-              _isConnected ? 'Waiting for attendance...' : 'Connection lost',
-              style: Theme.of(context).textTheme.headlineSmall,
+              _isConnected ? 'Live Feed Active' : 'Connection Lost',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
-            const SizedBox(height: AppTheme.spacing8),
+            const SizedBox(height: AppTheme.spacing12),
             Text(
               _isConnected
-                  ? 'Attendance events will appear here in real-time'
+                  ? 'Waiting for attendance events...\nNew records will appear here automatically'
                   : 'Tap the refresh button to reconnect',
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.grey600,
+                  ),
               textAlign: TextAlign.center,
             ),
             if (_isConnected) ...[
               const SizedBox(height: AppTheme.spacing32),
-              const CircularProgressIndicator(
-                color: AppTheme.black,
-                strokeWidth: 2,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacing16,
+                  vertical: AppTheme.spacing8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(AppTheme.radius16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade700,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.spacing8),
+                    Text(
+                      'Listening for events',
+                      style: TextStyle(
+                        color: Colors.green.shade900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],

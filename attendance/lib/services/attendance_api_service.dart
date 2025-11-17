@@ -134,6 +134,7 @@ class AttendanceApiService {
 
   // Connect to SSE stream for real-time attendance updates
   Stream<AttendanceRecord> connectSSE() async* {
+    print('🔵 SSE: Connecting to $baseUrl/api/attendance/stream');
     final request =
         http.Request('GET', Uri.parse('$baseUrl/api/attendance/stream'));
     request.headers['Accept'] = 'text/event-stream';
@@ -141,12 +142,16 @@ class AttendanceApiService {
 
     try {
       final streamedResponse = await client.send(request);
+      print(
+          '🔵 SSE: Connection response status: ${streamedResponse.statusCode}');
 
       if (streamedResponse.statusCode == 200) {
+        print('✅ SSE: Connected successfully, listening for events...');
         StringBuffer buffer = StringBuffer();
 
         await for (var chunk
             in streamedResponse.stream.transform(utf8.decoder)) {
+          print('📦 SSE: Received chunk: ${chunk.replaceAll('\n', '\\n')}');
           buffer.write(chunk);
           var lines = buffer.toString().split('\n\n');
           buffer.clear();
@@ -159,25 +164,41 @@ class AttendanceApiService {
           for (var line in lines) {
             if (line.trim().isEmpty) continue;
 
-            // Parse SSE format: "data: {...}"
-            var dataPrefix = 'data: ';
-            if (line.startsWith(dataPrefix)) {
-              var jsonStr = line.substring(dataPrefix.length).trim();
-              try {
-                var data = json.decode(jsonStr);
-                yield AttendanceRecord.fromJson(data);
-              } catch (e) {
-                // Skip malformed JSON
-                continue;
+            print('📝 SSE: Processing line: ${line.replaceAll('\n', '\\n')}');
+
+            // SSE events can have multiple lines (event: ...\ndata: ...)
+            // Split by newline and find the data line
+            var eventLines = line.split('\n');
+            for (var eventLine in eventLines) {
+              var dataPrefix = 'data: ';
+              if (eventLine.trim().startsWith(dataPrefix)) {
+                var jsonStr = eventLine
+                    .substring(
+                        eventLine.indexOf(dataPrefix) + dataPrefix.length)
+                    .trim();
+                print('🔍 SSE: Parsing JSON: $jsonStr');
+                try {
+                  var data = json.decode(jsonStr);
+                  print(
+                      '✅ SSE: Successfully parsed record: ${data['name']} (${data['status']})');
+                  yield AttendanceRecord.fromJson(data);
+                } catch (e) {
+                  print('❌ SSE: Failed to parse JSON: $e');
+                  continue;
+                }
               }
             }
           }
         }
+        print('⚠️ SSE: Stream ended');
       } else {
+        print(
+            '❌ SSE: Connection failed with status: ${streamedResponse.statusCode}');
         throw Exception(
             'SSE connection failed: ${streamedResponse.statusCode}');
       }
     } catch (e) {
+      print('❌ SSE: Error: $e');
       throw Exception('Error connecting to SSE: $e');
     }
   }
