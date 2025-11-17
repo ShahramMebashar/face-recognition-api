@@ -6,9 +6,7 @@ import '../services/attendance_api_service.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/attendance_list_item.dart';
 import '../theme/app_theme.dart';
-import 'faces_screen.dart';
 import 'add_face_screen.dart';
-import 'live_attendance_screen.dart';
 import 'recognize_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -128,9 +126,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.grey50,
       appBar: AppBar(
-        title: const Text('Attendance'),
+        title: const Text('Dashboard'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.face_retouching_natural),
+            onPressed: () => _navigateToRecognize(),
+            tooltip: 'Recognize Face',
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadData,
@@ -143,10 +147,14 @@ class _HomeScreenState extends State<HomeScreen> {
           : _error != null
               ? _buildError()
               : _buildContent(),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _navigateToAddFace(),
         backgroundColor: AppTheme.black,
-        child: const Icon(Icons.add, color: AppTheme.white),
+        icon: const Icon(Icons.person_add, color: AppTheme.white),
+        label: const Text(
+          'Add Person',
+          style: TextStyle(color: AppTheme.white, fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }
@@ -188,8 +196,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView(
         padding: const EdgeInsets.all(AppTheme.spacing16),
         children: [
-          _buildQuickActions(),
-          const SizedBox(height: AppTheme.spacing24),
           _buildStats(),
           const SizedBox(height: AppTheme.spacing24),
           _buildRecentAttendance(),
@@ -198,93 +204,44 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActions() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _QuickActionButton(
-                label: 'View Faces',
-                icon: Icons.people_outline,
-                onTap: () => _navigateToFaces(),
-              ),
-            ),
-            const SizedBox(width: AppTheme.spacing12),
-            Expanded(
-              child: _QuickActionButton(
-                label: 'Live View',
-                icon: Icons.visibility_outlined,
-                onTap: () => _navigateToLive(),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppTheme.spacing12),
-        SizedBox(
-          width: double.infinity,
-          child: _QuickActionButton(
-            label: 'Recognize Face',
-            icon: Icons.face_retouching_natural,
-            onTap: () => _navigateToRecognize(),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildStats() {
     if (_stats == null) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: AppTheme.spacing12,
+      crossAxisSpacing: AppTheme.spacing12,
+      childAspectRatio: 1.4,
       children: [
-        Text(
-          'Overview',
-          style: Theme.of(context).textTheme.headlineSmall,
+        StatCard(
+          label: 'Present Today',
+          value: '${_stats!.authorized}',
+          icon: Icons.check_circle_outline,
+          backgroundColor: Colors.green.shade50,
+          iconColor: Colors.green.shade600,
         ),
-        const SizedBox(height: AppTheme.spacing16),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: AppTheme.spacing12,
-          crossAxisSpacing: AppTheme.spacing12,
-          childAspectRatio: 1.5,
-          children: [
-            StatCard(
-              label: 'Present Today',
-              value: '${_stats!.authorized}',
-              icon: Icons.how_to_reg,
-              backgroundColor: Colors.green.shade50,
-              iconColor: Colors.green.shade700,
-              textColor: Colors.green.shade900,
-            ),
-            StatCard(
-              label: 'Unknown Visits',
-              value: '${_stats!.unauthorized}',
-              icon: Icons.person_off,
-              backgroundColor: Colors.red.shade50,
-              iconColor: Colors.red.shade700,
-              textColor: Colors.red.shade900,
-            ),
-            StatCard(
-              label: 'Registered People',
-              value: '${_stats!.uniquePeople}',
-              icon: Icons.groups,
-              backgroundColor: Colors.blue.shade50,
-              iconColor: Colors.blue.shade700,
-              textColor: Colors.blue.shade900,
-            ),
-            StatCard(
-              label: 'Total Events',
-              value: '${_stats!.total}',
-              icon: Icons.analytics,
-              backgroundColor: Colors.purple.shade50,
-              iconColor: Colors.purple.shade700,
-              textColor: Colors.purple.shade900,
-            ),
-          ],
+        StatCard(
+          label: 'Unknown Visits',
+          value: '${_stats!.unauthorized}',
+          icon: Icons.help_outline,
+          backgroundColor: Colors.red.shade50,
+          iconColor: Colors.red.shade600,
+        ),
+        StatCard(
+          label: 'Registered',
+          value: '${_stats!.uniquePeople}',
+          icon: Icons.people_outline,
+          backgroundColor: Colors.blue.shade50,
+          iconColor: Colors.blue.shade600,
+        ),
+        StatCard(
+          label: 'Total Events',
+          value: '${_stats!.total}',
+          icon: Icons.timeline,
+          backgroundColor: Colors.purple.shade50,
+          iconColor: Colors.purple.shade600,
         ),
       ],
     );
@@ -294,22 +251,18 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Recent Activity',
-              style: Theme.of(context).textTheme.headlineSmall,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacing4),
+          child: Text(
+            'Recent Activity',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.black,
             ),
-            TextButton(
-              onPressed: () {
-                // TODO: Navigate to full attendance history
-              },
-              child: const Text('View All'),
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: AppTheme.spacing16),
+        const SizedBox(height: AppTheme.spacing12),
         _recentRecords.isEmpty
             ? _buildEmptyState()
             : Column(
@@ -339,15 +292,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _navigateToFaces() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FacesScreen(apiService: widget.apiService),
-      ),
-    ).then((_) => _loadData());
-  }
-
   void _navigateToAddFace() {
     Navigator.push(
       context,
@@ -357,60 +301,12 @@ class _HomeScreenState extends State<HomeScreen> {
     ).then((_) => _loadData());
   }
 
-  void _navigateToLive() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            LiveAttendanceScreen(apiService: widget.apiService),
-      ),
-    );
-  }
-
   void _navigateToRecognize() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => RecognizeScreen(
           apiBaseUrl: widget.apiService.baseUrl,
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _QuickActionButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppTheme.radius12),
-      child: Container(
-        padding: const EdgeInsets.all(AppTheme.spacing20),
-        decoration: BoxDecoration(
-          color: AppTheme.white,
-          borderRadius: BorderRadius.circular(AppTheme.radius12),
-          border: Border.all(color: AppTheme.grey200),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: AppTheme.black),
-            const SizedBox(height: AppTheme.spacing8),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
         ),
       ),
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'services/attendance_api_service.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_navigation.dart';
 
 void main() {
   runApp(const AttendanceApp());
@@ -21,7 +21,7 @@ class AttendanceApp extends StatelessWidget {
       title: 'Attendance',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(apiService: apiService),
+      home: MainNavigation(apiService: apiService),
     );
   }
 }

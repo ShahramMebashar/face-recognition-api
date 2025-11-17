@@ -89,8 +89,10 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.grey50,
       appBar: AppBar(
-        title: const Text('Live Attendance'),
+        title: const Text('Live Feed'),
+        automaticallyImplyLeading: false,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: AppTheme.spacing16),
@@ -137,7 +139,7 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(AppTheme.spacing16),
+      padding: const EdgeInsets.symmetric(vertical: AppTheme.spacing12),
       itemCount: _liveRecords.length,
       itemBuilder: (context, index) {
         return _LiveAttendanceItem(
@@ -318,48 +320,42 @@ class _LiveAttendanceItemState extends State<_LiveAttendanceItem>
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          margin: const EdgeInsets.only(bottom: AppTheme.spacing12),
-          padding: const EdgeInsets.all(AppTheme.spacing20),
+          margin: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spacing16,
+            vertical: AppTheme.spacing4,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spacing16,
+            vertical: AppTheme.spacing12,
+          ),
           decoration: BoxDecoration(
-            color: widget.record.isAuthorized
-                ? Colors.green.shade50
-                : Colors.red.shade50,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(AppTheme.radius12),
-            border: Border.all(
-              color: widget.record.isAuthorized
-                  ? Colors.green.shade200
-                  : Colors.red.shade200,
-              width: 2,
-            ),
           ),
           child: Row(
             children: [
               // Avatar
               Container(
-                width: 56,
-                height: 56,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: widget.record.isAuthorized
-                      ? Colors.green.shade700
-                      : Colors.red.shade700,
+                      ? Colors.green.shade600
+                      : Colors.red.shade600,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 3,
-                  ),
                 ),
                 child: Center(
                   child: Text(
                     widget.record.name[0].toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: AppTheme.spacing16),
+              const SizedBox(width: AppTheme.spacing12),
 
               // Info
               Expanded(
@@ -367,25 +363,19 @@ class _LiveAttendanceItemState extends State<_LiveAttendanceItem>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.record.name.toUpperCase(),
-                      style: TextStyle(
-                        color: widget.record.isAuthorized
-                            ? Colors.green.shade900
-                            : Colors.red.shade900,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
+                      widget.record.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.black,
                       ),
                     ),
-                    const SizedBox(height: AppTheme.spacing4),
+                    const SizedBox(height: 2),
                     Text(
                       timeFormat.format(widget.record.timestamp),
                       style: TextStyle(
-                        color: widget.record.isAuthorized
-                            ? Colors.green.shade700
-                            : Colors.red.shade700,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                        color: AppTheme.grey600,
                       ),
                     ),
                   ],
@@ -393,48 +383,66 @@ class _LiveAttendanceItemState extends State<_LiveAttendanceItem>
               ),
 
               // Status badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: widget.record.isAuthorized
-                      ? Colors.green.shade100
-                      : Colors.red.shade100,
-                  borderRadius: BorderRadius.circular(AppTheme.radius8),
-                  border: Border.all(
-                    color: widget.record.isAuthorized
-                        ? Colors.green.shade300
-                        : Colors.red.shade300,
+              if (widget.record.isAuthorized)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green.shade600,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Present',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.help_outline,
+                        color: Colors.red.shade600,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Unknown',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red.shade700,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Column(
-                  children: [
-                    Icon(
-                      widget.record.isAuthorized
-                          ? Icons.check_circle
-                          : Icons.cancel,
-                      color: widget.record.isAuthorized
-                          ? Colors.green.shade700
-                          : Colors.red.shade700,
-                      size: 28,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.record.isAuthorized ? 'PRESENT' : 'UNKNOWN',
-                      style: TextStyle(
-                        color: widget.record.isAuthorized
-                            ? Colors.green.shade900
-                            : Colors.red.shade900,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),

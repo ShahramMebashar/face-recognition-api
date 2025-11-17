@@ -68,8 +68,10 @@ class _FacesScreenState extends State<FacesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.grey50,
       appBar: AppBar(
-        title: const Text('Registered Faces'),
+        title: const Text('Registered People'),
+        automaticallyImplyLeading: false,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(64),
           child: Container(

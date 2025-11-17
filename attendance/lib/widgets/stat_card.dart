@@ -22,41 +22,43 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppTheme.spacing20),
+      padding: const EdgeInsets.all(AppTheme.spacing16),
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppTheme.white,
-        borderRadius: BorderRadius.circular(AppTheme.radius12),
-        border: Border.all(
-          color: backgroundColor != null
-              ? (iconColor ?? AppTheme.grey200)
-              : AppTheme.grey200,
-          width: backgroundColor != null ? 2 : 1,
-        ),
+        color: backgroundColor ?? Colors.white,
+        borderRadius: BorderRadius.circular(AppTheme.radius16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Icon(
             icon,
-            size: 28,
+            size: 24,
             color: iconColor ?? AppTheme.black,
           ),
-          const Spacer(),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: textColor ?? AppTheme.black,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
+                  color: AppTheme.black,
+                  height: 1.2,
                 ),
-          ),
-          const SizedBox(height: AppTheme.spacing4),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: textColor?.withOpacity(0.7) ?? AppTheme.grey600,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
+                  color: AppTheme.grey600,
+                  height: 1.2,
                 ),
+              ),
+            ],
           ),
         ],
       ),
