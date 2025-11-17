@@ -292,14 +292,18 @@ bool sendImageToAPI(uint8_t* imageBuffer, size_t imageSize) {
       bool apiSuccess = doc["success"] | false;
       
       if (apiSuccess) {
-        // Check if face was recognized
-        JsonObject attendance = doc["attendance"];
-        if (!attendance.isNull()) {
-          const char* personName = attendance["person_name"];
-          const char* timestamp = attendance["timestamp"];
-          
-          Serial.printf("✓ Recognized: %s at %s\n", personName, timestamp);
+        // Check if authorized
+        bool authorized = doc["authorized"] | false;
+        const char* personName = doc["name"] | "Unknown";
+        float confidence = doc["confidence"] | 0.0;
+        const char* message = doc["message"] | "";
+        
+        if (authorized) {
+          Serial.printf("✓ Recognized: %s (%.2f%% confidence)\n", personName, confidence);
+          Serial.printf("   Message: %s\n", message);
           success = true;
+        } else {
+          Serial.printf("⚠️  Not authorized: %s\n", message);
         }
       } else {
         // API returned success=false
