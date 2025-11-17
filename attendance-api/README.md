@@ -359,7 +359,36 @@ attendance:
 
 ## Production Deployment
 
-### Docker Compose (Recommended)
+### Dokploy (Recommended for Production)
+
+> 📘 **Quick Guide**: See [VOLUME_MOUNT.md](./VOLUME_MOUNT.md) for step-by-step volume configuration
+> 
+> 📖 **Full Guide**: See [DOKPLOY.md](./DOKPLOY.md) for complete deployment instructions
+
+#### Volume Mount Configuration
+
+**CRITICAL**: Add a volume mount to persist the SQLite database across container restarts.
+
+In Dokploy dashboard:
+1. Go to your Attendance API service
+2. Navigate to "Mounts" or "Volumes" section
+3. Add volume mount:
+   - **Container Path**: `/app/data`
+   - **Volume Name**: `attendance-api-data` (or any unique name)
+   - **Type**: Volume (Docker managed volume)
+
+This ensures your attendance database persists even when the container is redeployed or restarted.
+
+#### Environment Variables for Dokploy
+
+Set these in Dokploy environment configuration:
+```env
+FACE_API_URL=http://face-recognition:5001
+ATTENDANCE_DB_PATH=/app/data/attendance.db
+SERVER_PORT=8080
+```
+
+### Docker Compose (Local Development)
 
 Deploy both services together:
 
@@ -379,10 +408,12 @@ docker run -d \
   -p 8080:8080 \
   -e FACE_API_URL=http://face-api:5001 \
   -e ATTENDANCE_DB_PATH=/app/data/attendance.db \
-  -v $(pwd)/data:/app/data \
+  -v attendance-api-data:/app/data \
   --restart unless-stopped \
   attendance-api
 ```
+
+**Note**: Using a named volume (`attendance-api-data:/app/data`) instead of bind mount (`$(pwd)/data:/app/data`) is recommended for production as it's managed by Docker and more portable.
 
 ### systemd Service
 

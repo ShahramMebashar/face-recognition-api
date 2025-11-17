@@ -33,6 +33,9 @@ COPY --from=builder /build/attendance-api .
 # Create data directory
 RUN mkdir -p /app/data
 
+# Declare volume for database persistence
+VOLUME ["/app/data"]
+
 # Expose port
 EXPOSE 8080
 

@@ -30,6 +30,8 @@ See `docs/` folder for detailed documentation:
 - `docs/README.md` - Full setup guide
 - `docs/API_README.md` - API usage
 - `docs/DOCKER.md` - Docker deployment
+- **`DOKPLOY_VOLUMES.md` - ⚠️ CRITICAL: Volume mounts for data persistence**
+- `attendance-api/DOKPLOY.md` - Complete Dokploy deployment guide
 
 ## Project Structure
 
@@ -52,6 +54,17 @@ face/
 ```bash
 docker-compose up -d
 ```
+
+## Dokploy Deployment 🚀
+
+**⚠️ CRITICAL**: Volume mounts are required for data persistence!
+
+Quick references:
+- **`DEPLOYMENT_CHECKLIST.md`** - Step-by-step deployment guide
+- **`DOKPLOY_VOLUMES.md`** - Complete volume configuration
+- **`VOLUME_ARCHITECTURE.md`** - Visual architecture diagrams
+
+Without volume mounts, all data (faces + attendance) will be lost on container restart.
 
 ## License
 
