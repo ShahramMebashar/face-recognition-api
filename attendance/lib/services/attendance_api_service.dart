@@ -182,6 +182,33 @@ class AttendanceApiService {
     }
   }
 
+  // Recognize face from image
+  Future<Map<String, dynamic>> recognizeFace(String imagePath) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/api/attendance'),
+      );
+
+      request.files.add(await http.MultipartFile.fromPath(
+        'image',
+        imagePath,
+      ));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      }
+
+      throw Exception('Recognition failed: ${response.statusCode}');
+    } catch (e) {
+      throw Exception('Error recognizing face: $e');
+    }
+  }
+
   void dispose() {
     client.close();
   }

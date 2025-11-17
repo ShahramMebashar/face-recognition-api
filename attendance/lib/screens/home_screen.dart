@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import 'faces_screen.dart';
 import 'add_face_screen.dart';
 import 'live_attendance_screen.dart';
+import 'recognize_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final AttendanceApiService apiService;
@@ -130,21 +131,34 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickActions() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _QuickActionButton(
-            label: 'View Faces',
-            icon: Icons.people_outline,
-            onTap: () => _navigateToFaces(),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _QuickActionButton(
+                label: 'View Faces',
+                icon: Icons.people_outline,
+                onTap: () => _navigateToFaces(),
+              ),
+            ),
+            const SizedBox(width: AppTheme.spacing12),
+            Expanded(
+              child: _QuickActionButton(
+                label: 'Live View',
+                icon: Icons.visibility_outlined,
+                onTap: () => _navigateToLive(),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: AppTheme.spacing12),
-        Expanded(
+        const SizedBox(height: AppTheme.spacing12),
+        SizedBox(
+          width: double.infinity,
           child: _QuickActionButton(
-            label: 'Live View',
-            icon: Icons.visibility_outlined,
-            onTap: () => _navigateToLive(),
+            label: 'Recognize Face',
+            icon: Icons.face_retouching_natural,
+            onTap: () => _navigateToRecognize(),
           ),
         ),
       ],
@@ -269,6 +283,17 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (context) =>
             LiveAttendanceScreen(apiService: widget.apiService),
+      ),
+    );
+  }
+
+  void _navigateToRecognize() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RecognizeScreen(
+          apiBaseUrl: widget.apiService.baseUrl,
+        ),
       ),
     );
   }
