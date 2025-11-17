@@ -127,7 +127,9 @@ func (s *AttendanceService) RecordAttendance(ctx context.Context, imageData []by
 	}
 
 	if err := s.saveRecord(record); err != nil {
-		fmt.Printf("Failed to save attendance record: %v\n", err)
+		fmt.Printf("❌ ERROR: Failed to save attendance record: %v\n", err)
+	} else {
+		fmt.Printf("✅ Saved attendance record: ID=%s, Name=%s, Status=%s\n", record.ID, record.Name, record.Status)
 	}
 
 	s.broadcast(domain.SSEMessage{

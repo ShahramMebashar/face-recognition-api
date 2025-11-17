@@ -10,7 +10,7 @@ class Face {
   factory Face.fromJson(Map<String, dynamic> json) {
     return Face(
       name: json['name'] as String,
-      imageCount: json['image_count'] as int,
+      imageCount: (json['images'] ?? json['image_count'] ?? 0) as int,
     );
   }
 
