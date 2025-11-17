@@ -38,7 +38,9 @@ func main() {
 	mux.HandleFunc("/api/attendance/stream", h.AttendanceStream)
 	mux.HandleFunc("/api/attendance/recent", h.GetRecentAttendance)
 	mux.HandleFunc("/api/attendance/stats", h.GetAttendanceStats)
-	mux.HandleFunc("/health", healthCheck)
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		healthCheck(w, r, attendanceService)
+	})
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
@@ -71,10 +73,14 @@ func main() {
 	log.Println("Server exited")
 }
 
-func healthCheck(w http.ResponseWriter, r *http.Request) {
+func healthCheck(w http.ResponseWriter, r *http.Request, as *service.AttendanceService) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, `{"status":"ok","service":"Attendance API"}`)
+
+	sseStats := as.GetSSEStats()
+
+	fmt.Fprintf(w, `{"status":"ok","service":"Attendance API","sse_clients":%d}`,
+		sseStats["active_clients"])
 }
 
 func corsMiddleware(next http.Handler) http.Handler {

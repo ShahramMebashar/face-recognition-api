@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -16,11 +17,19 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type SSEClient struct {
+	id      string
+	channel chan domain.SSEMessage
+	active  bool
+}
+
 type AttendanceService struct {
 	faceClient *client.FaceRecognitionClient
 	db         *sql.DB
 	mu         sync.RWMutex
-	clients    map[chan domain.SSEMessage]bool
+	clients    map[string]*SSEClient
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 func NewAttendanceService(faceClient *client.FaceRecognitionClient, dbPath string) (*AttendanceService, error) {
@@ -41,10 +50,14 @@ func NewAttendanceService(faceClient *client.FaceRecognitionClient, dbPath strin
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	service := &AttendanceService{
 		faceClient: faceClient,
 		db:         db,
-		clients:    make(map[chan domain.SSEMessage]bool),
+		clients:    make(map[string]*SSEClient),
+		ctx:        ctx,
+		cancel:     cancel,
 	}
 
 	// Initialize schema
@@ -52,6 +65,9 @@ func NewAttendanceService(faceClient *client.FaceRecognitionClient, dbPath strin
 		db.Close()
 		return nil, fmt.Errorf("failed to initialize schema: %w", err)
 	}
+
+	// Start periodic cleanup of stale connections
+	go service.cleanupStaleConnections()
 
 	return service, nil
 }
@@ -81,6 +97,22 @@ func (s *AttendanceService) initSchema() error {
 }
 
 func (s *AttendanceService) Close() error {
+	// Cancel cleanup goroutine
+	s.cancel()
+
+	// Close all SSE connections
+	s.mu.Lock()
+	log.Printf("🛑 SSE: Closing %d active connections for shutdown", len(s.clients))
+	for clientID, client := range s.clients {
+		if client.active {
+			client.active = false
+			close(client.channel)
+			log.Printf("🛑 SSE: Closed client %s", clientID)
+		}
+		delete(s.clients, clientID)
+	}
+	s.mu.Unlock()
+
 	return s.db.Close()
 }
 
@@ -161,32 +193,60 @@ func (s *AttendanceService) saveRecord(record domain.AttendanceRecord) error {
 	return nil
 }
 
-func (s *AttendanceService) Subscribe() chan domain.SSEMessage {
+func (s *AttendanceService) Subscribe() (string, chan domain.SSEMessage) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	clientID := uuid.New().String()[:8] // Short ID for logging
 	ch := make(chan domain.SSEMessage, 10)
-	s.clients[ch] = true
-	return ch
+
+	client := &SSEClient{
+		id:      clientID,
+		channel: ch,
+		active:  true,
+	}
+
+	s.clients[clientID] = client
+	log.Printf("📡 SSE: Client %s connected (total: %d)", clientID, len(s.clients))
+
+	return clientID, ch
 }
 
-func (s *AttendanceService) Unsubscribe(ch chan domain.SSEMessage) {
+func (s *AttendanceService) Unsubscribe(clientID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	delete(s.clients, ch)
-	close(ch)
+	if client, exists := s.clients[clientID]; exists {
+		client.active = false
+		close(client.channel)
+		delete(s.clients, clientID)
+		log.Printf("🔌 SSE: Client %s disconnected (remaining: %d)", clientID, len(s.clients))
+	} else {
+		log.Printf("⚠️ SSE: Attempted to unsubscribe unknown client %s", clientID)
+	}
 }
 
 func (s *AttendanceService) broadcast(msg domain.SSEMessage) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for ch := range s.clients {
-		select {
-		case ch <- msg:
-		default:
+	successCount := 0
+	for clientID, client := range s.clients {
+		if !client.active {
+			continue
 		}
+
+		select {
+		case client.channel <- msg:
+			successCount++
+		default:
+			// Channel full or blocked - client might be slow/dead
+			log.Printf("⚠️ SSE: Failed to send to client %s (channel full/blocked)", clientID)
+		}
+	}
+
+	if len(s.clients) > 0 {
+		log.Printf("📤 SSE: Broadcast to %d/%d clients", successCount, len(s.clients))
 	}
 }
 
@@ -284,4 +344,53 @@ func (s *AttendanceService) GetAttendanceStats() (map[string]interface{}, error)
 	stats["unique_people"] = uniquePeople
 
 	return stats, nil
+}
+
+func (s *AttendanceService) GetSSEStats() map[string]interface{} {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	activeClients := 0
+	for _, client := range s.clients {
+		if client.active {
+			activeClients++
+		}
+	}
+
+	return map[string]interface{}{
+		"total_clients":  len(s.clients),
+		"active_clients": activeClients,
+	}
+}
+
+// Periodic cleanup of stale connections (called as goroutine)
+func (s *AttendanceService) cleanupStaleConnections() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-s.ctx.Done():
+			log.Println("🛑 SSE: Cleanup goroutine stopped")
+			return
+		case <-ticker.C:
+			s.mu.Lock()
+			before := len(s.clients)
+
+			// Remove inactive clients
+			for clientID, client := range s.clients {
+				if !client.active {
+					delete(s.clients, clientID)
+					log.Printf("🧹 SSE: Cleaned up inactive client %s", clientID)
+				}
+			}
+
+			after := len(s.clients)
+			if before != after {
+				log.Printf("🧹 SSE: Cleanup removed %d stale clients (%d → %d)", before-after, before, after)
+			}
+
+			s.mu.Unlock()
+		}
+	}
 }

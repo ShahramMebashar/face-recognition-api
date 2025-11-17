@@ -192,16 +192,27 @@ func (h *Handler) AttendanceStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messageChan := h.attendanceService.Subscribe()
-	defer h.attendanceService.Unsubscribe(messageChan)
+	clientID, messageChan := h.attendanceService.Subscribe()
+	defer h.attendanceService.Unsubscribe(clientID)
 
 	ctx := r.Context()
+
+	// Send initial connection success message
+	fmt.Fprintf(w, "event: connected\n")
+	fmt.Fprintf(w, "data: {\"message\":\"Connected to attendance stream\",\"client_id\":\"%s\"}\n\n", clientID)
+	flusher.Flush()
 
 	for {
 		select {
 		case <-ctx.Done():
+			// Client disconnected
 			return
-		case msg := <-messageChan:
+		case msg, ok := <-messageChan:
+			if !ok {
+				// Channel closed
+				return
+			}
+
 			data, err := json.Marshal(msg.Data)
 			if err != nil {
 				continue
