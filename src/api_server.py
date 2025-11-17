@@ -21,7 +21,9 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp'}
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
 
 # Initialize face recognizer
-recognizer = FaceRecognizer(known_faces_dir="known_faces", tolerance=0.6)
+# Lower tolerance = stricter matching, Higher tolerance = more lenient
+# Default 0.6, trying 0.7 for better matching with webcam quality
+recognizer = FaceRecognizer(known_faces_dir="known_faces", tolerance=0.7)
 print("Loading known faces...")
 recognizer.load_known_faces()
 
@@ -99,12 +101,16 @@ def recognize():
         # Recognize faces
         results = recognizer.recognize_faces(temp_path)
         
+        # DEBUG: Print recognition results
+        print(f"DEBUG: Recognition results: {results}")
+        
         # Clean up temp file
         os.remove(temp_path)
         
         # Format response
         faces = []
         for result in results:
+            print(f"DEBUG: Face found - Name: {result['name']}, Confidence: {result['confidence']}")
             face_data = {
                 "name": result['name'],
                 "confidence": round(result['confidence'], 2),

@@ -110,6 +110,8 @@ func (s *AttendanceService) RecordAttendance(ctx context.Context, imageData []by
 	action := "keep_closed"
 	message := "Unknown person"
 
+	fmt.Printf("DEBUG: Face name='%s', authorized=%v\n", face.Name, authorized)
+
 	if authorized {
 		status = "authorized"
 		action = "open_door"

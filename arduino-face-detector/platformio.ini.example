@@ -1,0 +1,13 @@
+{
+  "name": "arduino-face-detector",
+  "version": "1.0.0",
+  "description": "ESP32-CAM Face Recognition Attendance System",
+  "keywords": ["esp32", "face-recognition", "attendance", "camera", "iot"],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "ArduinoJson": "^6.21.0"
+  },
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32"]
+}

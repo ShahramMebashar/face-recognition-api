@@ -97,6 +97,12 @@ func (c *FaceRecognitionClient) RecognizeFace(ctx context.Context, imageData []b
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
+	// DEBUG: Log what we received
+	fmt.Printf("DEBUG: Recognition result - Success: %v, Faces: %d\n", result.Success, result.FacesDetected)
+	if len(result.Faces) > 0 {
+		fmt.Printf("DEBUG: First face - Name: %s, Confidence: %.2f\n", result.Faces[0].Name, result.Faces[0].Confidence)
+	}
+
 	return &result, nil
 }
 
