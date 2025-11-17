@@ -152,16 +152,19 @@ class _AddFaceScreenState extends State<AddFaceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.grey50,
       appBar: AppBar(
-        title: const Text('Add New Face'),
+        title: const Text('Add New Person'),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(AppTheme.spacing16),
           children: [
+            _buildTipsCard(),
+            const SizedBox(height: AppTheme.spacing20),
             _buildNameInput(),
-            const SizedBox(height: AppTheme.spacing24),
+            const SizedBox(height: AppTheme.spacing20),
             _buildImageSection(),
             const SizedBox(height: AppTheme.spacing32),
             _buildSubmitButton(),
@@ -171,55 +174,223 @@ class _AddFaceScreenState extends State<AddFaceScreen> {
     );
   }
 
-  Widget _buildNameInput() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Person Name',
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
-        const SizedBox(height: AppTheme.spacing8),
-        TextFormField(
-          controller: _nameController,
-          decoration: const InputDecoration(
-            hintText: 'Enter full name',
-            prefixIcon: Icon(Icons.person_outline),
+  Widget _buildTipsCard() {
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spacing16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(AppTheme.radius12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.lightbulb_outline,
+                  color: Colors.blue.shade700, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Tips for Best Results',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue.shade900,
+                ),
+              ),
+            ],
           ),
-          textCapitalization: TextCapitalization.words,
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Please enter a name';
-            }
-            return null;
-          },
-        ),
-      ],
+          const SizedBox(height: 8),
+          _buildTip('Take 3-5 photos from different angles'),
+          _buildTip('Ensure good lighting and clear face visibility'),
+          _buildTip('Face the camera directly in at least one photo'),
+          _buildTip('Avoid sunglasses, masks, or face obstructions'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTip(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, left: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade700,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.blue.shade800,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNameInput() {
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spacing16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppTheme.radius12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.person_outline, size: 20, color: AppTheme.grey600),
+              const SizedBox(width: 8),
+              const Text(
+                'Person Name',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spacing12),
+          TextFormField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              hintText: 'Enter full name',
+              filled: true,
+              fillColor: AppTheme.grey50,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radius8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacing16,
+                vertical: AppTheme.spacing12,
+              ),
+            ),
+            textCapitalization: TextCapitalization.words,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Please enter a name';
+              }
+              if (value.trim().length < 2) {
+                return 'Name must be at least 2 characters';
+              }
+              return null;
+            },
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildImageSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Photos (${_selectedImages.length})',
-              style: Theme.of(context).textTheme.labelLarge,
+    final hasMinimumImages = _selectedImages.length >= 3;
+
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spacing16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppTheme.radius12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.photo_camera_outlined,
+                  size: 20, color: AppTheme.grey600),
+              const SizedBox(width: 8),
+              const Text(
+                'Photos',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: hasMinimumImages
+                      ? Colors.green.shade50
+                      : Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      hasMinimumImages
+                          ? Icons.check_circle
+                          : Icons.info_outline,
+                      size: 14,
+                      color: hasMinimumImages
+                          ? Colors.green.shade700
+                          : Colors.orange.shade700,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${_selectedImages.length}/3 min',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: hasMinimumImages
+                            ? Colors.green.shade900
+                            : Colors.orange.shade900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spacing16),
+          _buildImagePickers(),
+          if (_selectedImages.isNotEmpty) ...[
+            const SizedBox(height: AppTheme.spacing16),
+            _buildImageGrid(),
+          ] else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppTheme.spacing16),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.photo_library_outlined,
+                      size: 48,
+                      color: AppTheme.grey300,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No photos selected',
+                      style: TextStyle(
+                        color: AppTheme.grey600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            Text(
-              'Min: 3 recommended',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-        ),
-        const SizedBox(height: AppTheme.spacing12),
-        _buildImagePickers(),
-        const SizedBox(height: AppTheme.spacing16),
-        if (_selectedImages.isNotEmpty) _buildImageGrid(),
-      ],
+        ],
+      ),
     );
   }
 
@@ -228,26 +399,34 @@ class _AddFaceScreenState extends State<AddFaceScreen> {
       children: [
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: _isUploading ? null : _pickImages,
-            icon: const Icon(Icons.photo_library_outlined),
-            label: const Text('Gallery'),
+            onPressed: _isUploading ? null : _takePicture,
+            icon: const Icon(Icons.camera_alt_outlined),
+            label: const Text('Take Photo'),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: AppTheme.spacing16),
-              side: const BorderSide(color: AppTheme.grey300),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              backgroundColor: Colors.white,
+              side: BorderSide(color: AppTheme.grey300),
               foregroundColor: AppTheme.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radius8),
+              ),
             ),
           ),
         ),
         const SizedBox(width: AppTheme.spacing12),
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: _isUploading ? null : _takePicture,
-            icon: const Icon(Icons.camera_alt_outlined),
-            label: const Text('Camera'),
+            onPressed: _isUploading ? null : _pickImages,
+            icon: const Icon(Icons.photo_library_outlined),
+            label: const Text('Choose'),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: AppTheme.spacing16),
-              side: const BorderSide(color: AppTheme.grey300),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              backgroundColor: Colors.white,
+              side: BorderSide(color: AppTheme.grey300),
               foregroundColor: AppTheme.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radius8),
+              ),
             ),
           ),
         ),
