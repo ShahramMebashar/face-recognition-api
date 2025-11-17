@@ -29,5 +29,11 @@ if __name__ == '__main__':
     print(f"  curl -X POST -F 'name=john_doe' -F 'images=@photo1.jpg' http://localhost:{port}/faces/add")
     print("\n" + "=" * 60 + "\n")
     
+    # Check if we should run in debug mode (default True for local dev)
+    import os
+    debug_mode = os.getenv('FLASK_DEBUG', 'True').lower() in ('true', '1', 'yes')
+    
     # Run server
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # Note: use_reloader=False prevents restart when files change
+    # In production (Docker), use gunicorn instead
+    app.run(host='0.0.0.0', port=port, debug=debug_mode, use_reloader=False)
