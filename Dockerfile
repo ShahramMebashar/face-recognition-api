@@ -42,5 +42,6 @@ RUN mkdir -p known_faces
 # Expose port
 EXPOSE 5001
 
-# Run with Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5001", "--timeout", "120", "src.api_server:app"]
+# Run with Gunicorn - single worker to avoid sync issues
+# For a small face recognition app, 1 worker is sufficient and simpler
+CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:5001", "--timeout", "180", "--max-requests", "100", "--max-requests-jitter", "10", "src.api_server:app"]
